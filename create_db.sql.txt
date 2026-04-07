@@ -1,0 +1,46 @@
+-- 1. Створення користувачів з різними рівнями доступу
+-- Адміністратор (має всі права)
+CREATE ROLE fleet_admin WITH LOGIN PASSWORD 'admin123' SUPERUSER;
+-- Модератор (може змінювати дані, але не структуру бази)
+CREATE ROLE fleet_moderator WITH LOGIN PASSWORD 'mod123';
+-- Звичайний користувач (може лише переглядати дані)
+CREATE ROLE fleet_user WITH LOGIN PASSWORD 'user123';
+
+-- 2. Створення таблиць
+CREATE TABLE cars (
+    car_id SERIAL PRIMARY KEY,
+    make VARCHAR(50) NOT NULL,
+    model VARCHAR(50) NOT NULL,
+    year INT,
+    license_plate VARCHAR(20) UNIQUE
+);
+
+CREATE TABLE drivers (
+    driver_id SERIAL PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    license_number VARCHAR(50) UNIQUE
+);
+
+CREATE TABLE trips (
+    trip_id SERIAL PRIMARY KEY,
+    car_id INT REFERENCES cars(car_id),
+    driver_id INT REFERENCES drivers(driver_id),
+    trip_date DATE NOT NULL,
+    distance_km DECIMAL(8,2),
+    duration_hours DECIMAL(5,2),
+    fuel_consumed_l DECIMAL(6,2),
+    is_late BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE maintenance (
+    maintenance_id SERIAL PRIMARY KEY,
+    car_id INT REFERENCES cars(car_id),
+    maintenance_date DATE NOT NULL,
+    description TEXT,
+    status VARCHAR(50)
+);
+
+-- 3. Надання прав доступу модератору та користувачу на створені таблиці
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO fleet_moderator;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO fleet_user;
